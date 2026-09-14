@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────
+   StudyLens — Base Styles
+   Light, academic, mobile-first design system
+   ────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-sans text-sm leading-relaxed text-slate-700;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent content from being hidden behind fixed bottom nav */
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  /* Reusable card surface */
+  .card {
+    @apply rounded-xl border border-surface-200 bg-white p-4 shadow-card;
+  }
+
+  .card-hover {
+    @apply transition-shadow duration-200 hover:shadow-card-hover;
+  }
+
+  /* Page wrapper — ensures proper spacing around fixed nav */
+  .page {
+    @apply mx-auto max-w-2xl px-4 pb-24 pt-4 sm:px-6 lg:pb-8;
+  }
+
+  /* Section heading */
+  .section-heading {
+    @apply text-lg font-semibold text-slate-800;
+  }
+
+  /* Subtle label text */
+  .label-muted {
+    @apply text-xs font-medium uppercase tracking-wide text-slate-400;
+  }
+}
+
+@layer utilities {
+  /* Safe area bottom padding for iOS */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
