@@ -28,9 +28,22 @@ import TransparencyFooter from '../components/shared/TransparencyFooter.jsx';
  * - Level 2 (Toggle): Detailed factor scoring breakdown with weights & points
  */
 export default function RecommendationPage() {
-  const { history } = useLearningHistory();
-  const recommendation = useRecommendation(history);
+  const { history, recordRecommendationSnapshot, logRecommendationInteraction } = useLearningHistory();
+  const recommendation = useRecommendation(history, recordRecommendationSnapshot);
   const [showTechnicalBreakdown, setShowTechnicalBreakdown] = useState(false);
+
+  const handleToggleTechnical = () => {
+    const nextState = !showTechnicalBreakdown;
+    setShowTechnicalBreakdown(nextState);
+    if (nextState) {
+      logRecommendationInteraction({
+        eventType: 'exp_opened_l2',
+        recommendationId: recommendation?.recommendationId || recommendation?.topicId,
+        topicId: recommendation?.topicId,
+        topicName: recommendation?.topicName,
+      });
+    }
+  };
 
   // Fallback state if no recommendation exists
   if (!recommendation) {
@@ -132,6 +145,14 @@ export default function RecommendationPage() {
         <div className="mt-4 pt-3 border-t border-surface-200 flex flex-wrap items-center justify-between gap-3">
           <Link
             to={`/course/topic/${recommendation.topicId}`}
+            onClick={() => {
+              logRecommendationInteraction({
+                eventType: 'rec_accepted',
+                recommendationId: recommendation.recommendationId || recommendation.topicId,
+                topicId: recommendation.topicId,
+                topicName: recommendation.topicName,
+              });
+            }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
           >
             Start Review
@@ -141,6 +162,14 @@ export default function RecommendationPage() {
           <div className="flex items-center gap-3 text-xs">
             <Link
               to="/course"
+              onClick={() => {
+                logRecommendationInteraction({
+                  eventType: 'rec_overridden',
+                  recommendationId: recommendation.recommendationId || recommendation.topicId,
+                  topicId: recommendation.topicId,
+                  topicName: recommendation.topicName,
+                });
+              }}
               className="font-medium text-slate-600 hover:text-slate-800 hover:underline"
             >
               Choose another topic
@@ -164,7 +193,7 @@ export default function RecommendationPage() {
           </div>
 
           <button
-            onClick={() => setShowTechnicalBreakdown(!showTechnicalBreakdown)}
+            onClick={handleToggleTechnical}
             className="inline-flex items-center gap-1 rounded-md border border-surface-300 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-surface-100 transition-colors"
           >
             <Sliders className="h-3 w-3 text-brand-600" />

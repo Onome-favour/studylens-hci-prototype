@@ -1,5 +1,5 @@
 /**
- * StudyLens — Mock Learning History
+ * StudyLens — Mock Learning History (Schema Version 2)
  *
  * Pre-populated student learning history so that the recommendation
  * engine has meaningful data from the first load.
@@ -12,14 +12,15 @@
  */
 
 export const defaultHistory = {
+  schemaVersion: 2,
   studentName: 'Alex',
   courseId: 'cs3200',
 
-  // ── Per-topic progress ─────────────────────────────────────────────────
+  // ── Per-topic latest progress summary ──────────────────────────────────
   topicProgress: {
     'intro-to-databases': {
-      status: 'reviewed',       // fully reviewed
-      score: 3,                 // correct answers on last attempt
+      status: 'reviewed',       // formative review threshold met (>= 2/3)
+      score: 3,                 // latest score
       maxScore: 3,              // total questions
       lastReviewed: '2026-08-25',
       attempts: 2,
@@ -67,6 +68,13 @@ export const defaultHistory = {
       attempts: 0,
     },
   },
+
+  // ── Append-only historical collections (new in Schema v2) ─────────────
+  // Initialized empty for initial state — new attempts/events append here
+  quizAttempts: [],
+  recommendationHistory: [],
+  recommendationInteractions: [],
+  reflections: [],
 
   // ── Recent activity log (most recent first) ────────────────────────────
   activityLog: [

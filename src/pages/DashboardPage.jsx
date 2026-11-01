@@ -16,8 +16,8 @@ import PrototypeBadge from '../components/shared/PrototypeBadge.jsx';
  * to the dashboard UI.
  */
 export default function DashboardPage() {
-  const { history } = useLearningHistory();
-  const recommendation = useRecommendation(history);
+  const { history, recordRecommendationSnapshot } = useLearningHistory();
+  const recommendation = useRecommendation(history, recordRecommendationSnapshot);
 
   return (
     <div className="page animate-fade-in">

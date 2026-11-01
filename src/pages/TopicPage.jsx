@@ -28,8 +28,12 @@ export default function TopicPage() {
   const [mode, setMode] = useState('overview'); // 'overview' | 'quiz' | 'results'
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState(null);
+  const [selectedConfidence, setSelectedConfidence] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [attemptResponses, setAttemptResponses] = useState([]);
+  const [quizStartTime, setQuizStartTime] = useState(null);
+  const [lastAttemptId, setLastAttemptId] = useState(null);
 
   // Ref to guarantee recordQuizResult is called EXACTLY ONCE per attempt
   const hasRecordedRef = useRef(false);
@@ -39,8 +43,12 @@ export default function TopicPage() {
     setMode('overview');
     setCurrentQIndex(0);
     setSelectedOptionId(null);
+    setSelectedConfidence(null);
     setIsSubmitted(false);
     setScore(0);
+    setAttemptResponses([]);
+    setQuizStartTime(null);
+    setLastAttemptId(null);
     hasRecordedRef.current = false;
   }, [topicId]);
 
@@ -88,32 +96,81 @@ export default function TopicPage() {
   const totalQuestions = quiz.questions.length;
 
   // Handlers
+  const handleStartQuiz = () => {
+    setMode('quiz');
+    setCurrentQIndex(0);
+    setSelectedOptionId(null);
+    setSelectedConfidence(null);
+    setIsSubmitted(false);
+    setScore(0);
+    setAttemptResponses([]);
+    setQuizStartTime(new Date().toISOString());
+    hasRecordedRef.current = false;
+  };
+
   const handleSelectOption = (optionId) => {
     setSelectedOptionId(optionId);
   };
 
+  const handleSelectConfidence = (confidenceId) => {
+    setSelectedConfidence(confidenceId);
+  };
+
   const handleSubmitAnswer = () => {
-    if (!selectedOptionId || isSubmitted) return;
+    if (!selectedOptionId || !selectedConfidence || isSubmitted) return;
     setIsSubmitted(true);
 
-    if (selectedOptionId === currentQuestion.correctId) {
+    const isCorrect = selectedOptionId === currentQuestion.correctId;
+    if (isCorrect) {
       setScore((prev) => prev + 1);
     }
+
+    const responseItem = {
+      questionId: currentQuestion.id,
+      selectedOptionId,
+      correctOptionId: currentQuestion.correctId,
+      isCorrect,
+      confidence: selectedConfidence,
+    };
+
+    setAttemptResponses((prev) => [...prev, responseItem]);
   };
 
   const handleNextQuestion = () => {
     if (currentQIndex + 1 < totalQuestions) {
       setCurrentQIndex((prev) => prev + 1);
       setSelectedOptionId(null);
+      setSelectedConfidence(null);
       setIsSubmitted(false);
     } else {
       // Reached end of quiz -> record results exactly once
-      const finalScore =
-        selectedOptionId === currentQuestion.correctId ? score + 1 : score;
+      const isLastCorrect = selectedOptionId === currentQuestion.correctId;
+      const finalScore = isLastCorrect ? score + 1 : score;
+
+      const lastResponseItem = {
+        questionId: currentQuestion.id,
+        selectedOptionId,
+        correctOptionId: currentQuestion.correctId,
+        isCorrect: isLastCorrect,
+        confidence: selectedConfidence,
+      };
+
+      // Combine previous responses with the final response
+      const allResponses = [...attemptResponses, lastResponseItem];
 
       if (!hasRecordedRef.current) {
         hasRecordedRef.current = true;
-        recordQuizResult(topic.id, finalScore, totalQuestions, topic.name);
+        const newAttemptId = recordQuizResult(
+          topic.id,
+          finalScore,
+          totalQuestions,
+          topic.name,
+          allResponses,
+          quizStartTime
+        );
+        if (newAttemptId) {
+          setLastAttemptId(newAttemptId);
+        }
       }
 
       setMode('results');
@@ -121,12 +178,7 @@ export default function TopicPage() {
   };
 
   const handleRetakeQuiz = () => {
-    setMode('quiz');
-    setCurrentQIndex(0);
-    setSelectedOptionId(null);
-    setIsSubmitted(false);
-    setScore(0);
-    hasRecordedRef.current = false;
+    handleStartQuiz();
   };
 
   return (
@@ -228,7 +280,7 @@ export default function TopicPage() {
             </p>
 
             <button
-              onClick={() => setMode('quiz')}
+              onClick={handleStartQuiz}
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition-all"
             >
               Start Practice Quiz
@@ -246,6 +298,8 @@ export default function TopicPage() {
             totalQuestions={totalQuestions}
             selectedOptionId={selectedOptionId}
             onSelectOption={handleSelectOption}
+            selectedConfidence={selectedConfidence}
+            onSelectConfidence={handleSelectConfidence}
             isSubmitted={isSubmitted}
             onSubmitAnswer={handleSubmitAnswer}
             onNextQuestion={handleNextQuestion}
@@ -256,9 +310,11 @@ export default function TopicPage() {
       {/* Mode 3: Quiz Results */}
       {mode === 'results' && (
         <QuizResults
+          topicId={topic.id}
           topicName={topic.name}
           score={score}
           maxScore={totalQuestions}
+          attemptId={lastAttemptId}
           onRetakeQuiz={handleRetakeQuiz}
         />
       )}

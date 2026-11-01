@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, HelpCircle, ChevronDown, ChevronUp, ArrowRight, X, RotateCcw } from 'lucide-react';
+import useLearningHistory from '../../hooks/useLearningHistory.js';
+
+const DISMISSED_REC_KEY = 'studylens-dismissed-rec';
 
 /**
  * RecommendationCard
@@ -12,8 +15,113 @@ import { Sparkles, HelpCircle, ChevronDown, ChevronUp, ArrowRight, X, RotateCcw 
  * Recommendation -> Progressive "Why?" Explanation -> Student Control.
  */
 export default function RecommendationCard({ recommendation }) {
+  const { logRecommendationInteraction } = useLearningHistory();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+
+  const displayedRecIdRef = useRef(null);
+
+  // Check persistent dismissal for active recommendation episode / topic
+  useEffect(() => {
+    if (!recommendation?.topicId) {
+      setIsDismissed(false);
+      return;
+    }
+
+    try {
+      const savedDismissed = localStorage.getItem(DISMISSED_REC_KEY);
+      // Can match either the episodeId or the topicId
+      if (
+        savedDismissed === recommendation.recommendationId ||
+        savedDismissed === recommendation.topicId
+      ) {
+        setIsDismissed(true);
+      } else {
+        // If the recommendation changed, clear dismissal for the new episode
+        setIsDismissed(false);
+      }
+    } catch {
+      setIsDismissed(false);
+    }
+  }, [recommendation?.recommendationId, recommendation?.topicId]);
+
+  // Log 'rec_displayed' once per recommendation episodeId
+  useEffect(() => {
+    const episodeId = recommendation?.recommendationId || recommendation?.topicId;
+    if (episodeId && displayedRecIdRef.current !== episodeId) {
+      displayedRecIdRef.current = episodeId;
+      logRecommendationInteraction({
+        eventType: 'rec_displayed',
+        recommendationId: episodeId,
+        topicId: recommendation.topicId,
+        topicName: recommendation.topicName,
+        totalScore: recommendation.totalScore,
+      });
+    }
+  }, [recommendation?.recommendationId, recommendation?.topicId, recommendation?.topicName, recommendation?.totalScore, logRecommendationInteraction]);
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    const episodeId = recommendation?.recommendationId || recommendation?.topicId;
+    try {
+      localStorage.setItem(DISMISSED_REC_KEY, episodeId);
+    } catch {
+      // Ignore localStorage error
+    }
+    logRecommendationInteraction({
+      eventType: 'rec_dismissed',
+      recommendationId: episodeId,
+      topicId: recommendation?.topicId,
+      topicName: recommendation?.topicName,
+    });
+  };
+
+  const handleRestore = () => {
+    setIsDismissed(false);
+    const episodeId = recommendation?.recommendationId || recommendation?.topicId;
+    try {
+      localStorage.removeItem(DISMISSED_REC_KEY);
+    } catch {
+      // Ignore localStorage error
+    }
+    logRecommendationInteraction({
+      eventType: 'rec_restored',
+      recommendationId: episodeId,
+      topicId: recommendation?.topicId,
+      topicName: recommendation?.topicName,
+    });
+  };
+
+  const handleToggleExpand = () => {
+    const nextState = !isExpanded;
+    setIsExpanded(nextState);
+    if (nextState) {
+      logRecommendationInteraction({
+        eventType: 'exp_opened_l1',
+        recommendationId: recommendation?.recommendationId || recommendation?.topicId,
+        topicId: recommendation?.topicId,
+        topicName: recommendation?.topicName,
+      });
+    }
+  };
+
+  const handleAcceptRecommendation = () => {
+    logRecommendationInteraction({
+      eventType: 'rec_accepted',
+      recommendationId: recommendation?.recommendationId || recommendation?.topicId,
+      topicId: recommendation?.topicId,
+      topicName: recommendation?.topicName,
+    });
+  };
+
+  const handleOverrideRecommendation = () => {
+    logRecommendationInteraction({
+      eventType: 'rec_overridden',
+      recommendationId: recommendation?.recommendationId || recommendation?.topicId,
+      topicId: recommendation?.topicId,
+      topicName: recommendation?.topicName,
+    });
+  };
 
   // Fallback state if no recommendation is returned
   if (!recommendation) {
@@ -46,7 +154,7 @@ export default function RecommendationCard({ recommendation }) {
       <div className="rounded-xl border border-surface-200 bg-surface-100 p-3 text-xs text-slate-500 flex items-center justify-between">
         <span>Recommendation for <strong>{recommendation.topicName}</strong> dismissed.</span>
         <button
-          onClick={() => setIsDismissed(false)}
+          onClick={handleRestore}
           className="inline-flex items-center gap-1 font-medium text-brand-600 hover:text-brand-700"
         >
           <RotateCcw className="h-3.5 w-3.5" />
@@ -68,7 +176,7 @@ export default function RecommendationCard({ recommendation }) {
         </div>
 
         <button
-          onClick={() => setIsDismissed(true)}
+          onClick={handleDismiss}
           className="rounded p-1 text-slate-400 hover:bg-surface-100 hover:text-slate-600"
           title="Dismiss recommendation"
           aria-label="Dismiss recommendation"
@@ -96,7 +204,7 @@ export default function RecommendationCard({ recommendation }) {
       {/* Progressive Explanation Trigger ("Why?") */}
       <div className="mt-4 border-t border-brand-100 pt-3">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggleExpand}
           className="flex w-full items-center justify-between rounded-lg bg-white px-3 py-2 text-xs font-medium text-brand-700 border border-brand-100 hover:bg-brand-50/50 transition-colors"
         >
           <span className="flex items-center gap-1.5">
@@ -146,6 +254,7 @@ export default function RecommendationCard({ recommendation }) {
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Link
           to={`/course/topic/${recommendation.topicId}`}
+          onClick={handleAcceptRecommendation}
           className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
         >
           Start Review
@@ -155,6 +264,7 @@ export default function RecommendationCard({ recommendation }) {
         <div className="flex items-center justify-between sm:justify-end gap-3">
           <Link
             to="/course"
+            onClick={handleOverrideRecommendation}
             className="text-xs font-medium text-slate-500 hover:text-slate-700 hover:underline"
           >
             Choose another topic

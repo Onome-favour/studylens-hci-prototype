@@ -1,4 +1,4 @@
-import { AlertCircle, RotateCcw } from 'lucide-react';
+import { AlertCircle, RotateCcw, Download } from 'lucide-react';
 import useLearningHistory from '../../hooks/useLearningHistory.js';
 
 /**
@@ -8,10 +8,34 @@ import useLearningHistory from '../../hooks/useLearningHistory.js';
  * uses simulated recommendation logic. Placed at the bottom of
  * relevant pages to maintain research integrity.
  *
- * Includes a subtle "Reset Demo State" button for demonstration reset.
+ * Includes:
+ * - Subtle "Download Research Logs (JSON)" button for research reproducibility and data audit.
+ * - Subtle "Reset Demo Data" button for demonstration reset.
  */
 export default function TransparencyFooter() {
-  const { resetHistory } = useLearningHistory();
+  const { history, resetHistory } = useLearningHistory();
+
+  const handleDownloadResearchData = () => {
+    try {
+      const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        ...history,
+      };
+
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute(
+        'download',
+        `studylens-research-data-${new Date().toISOString().slice(0, 10)}.json`
+      );
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (err) {
+      console.error('Failed to export research data:', err);
+    }
+  };
 
   return (
     <footer className="mt-10 border-t border-surface-200 pt-6 pb-4">
@@ -32,21 +56,32 @@ export default function TransparencyFooter() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-surface-200/80 pt-2.5 text-[11px] text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-200/80 pt-2.5 text-[11px] text-slate-400">
           <span>StudyLens v1.0 · HCI Research Prototype</span>
-          <button
-            onClick={() => {
-              if (window.confirm('Reset learning history back to initial demo state?')) {
-                resetHistory();
-                window.location.href = '/';
-              }
-            }}
-            className="inline-flex items-center gap-1 font-medium text-slate-500 hover:text-brand-600 hover:underline"
-            title="Reset student learning history to default state for testing"
-          >
-            <RotateCcw className="h-3 w-3" />
-            Reset Demo Data
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleDownloadResearchData}
+              className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-brand-600 hover:underline"
+              title="Export all session logs, attempts, confidence ratings, and reflections as JSON"
+            >
+              <Download className="h-3 w-3" />
+              Download Research Logs (JSON)
+            </button>
+
+            <button
+              onClick={() => {
+                if (window.confirm('Reset learning history back to initial demo state?')) {
+                  resetHistory();
+                  window.location.href = '/';
+                }
+              }}
+              className="inline-flex items-center gap-1 font-medium text-slate-500 hover:text-brand-600 hover:underline"
+              title="Reset student learning history to default state for testing"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset Demo Data
+            </button>
+          </div>
         </div>
       </div>
     </footer>
