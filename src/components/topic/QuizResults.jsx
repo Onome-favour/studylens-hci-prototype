@@ -201,7 +201,7 @@ export default function QuizResults({
       <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-3 text-xs text-slate-600 flex items-start gap-2">
         <AlertCircle className="h-4 w-4 text-brand-600 flex-shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <strong>Transparency Note:</strong> Your score was recorded in your learning history. Your personalized AI study recommendation on the Dashboard will automatically update to reflect your new progress.
+          <strong>Transparency Note:</strong> Your score was recorded in your learning history. Your personalized study recommendation on the Dashboard will automatically update to reflect your new progress.
         </p>
       </div>
 

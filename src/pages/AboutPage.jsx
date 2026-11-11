@@ -50,7 +50,7 @@ const HCI_CONCEPTS = [
 
 const RESEARCH_LOOP_STEPS = [
   'Learning history data',
-  'AI study recommendation',
+  'Personalized study recommendation',
   'Explanation & "Why?" reveal',
   'Student decision & control',
   'Learning activity (Quiz)',
@@ -80,11 +80,11 @@ export default function AboutPage() {
       <div className="card mb-4">
         <h2 className="section-heading mb-2">What is StudyLens?</h2>
         <p className="text-xs leading-relaxed text-slate-600">
-          StudyLens is a focused HCI research prototype exploring how an AI learning assistant can use a student's learning history to recommend what they should study next — while transparently communicating why the recommendation was made and preserving student autonomy.
+          StudyLens is an HCI research prototype exploring explainable, personalized learning recommendations and learner agency. It uses deterministic, rule-based logic to identify topics that may need attention based on learning history, quiz performance, topic progress, and review recency. The prototype makes recommendation factors visible so learners can understand, accept, override, or dismiss suggestions.
         </p>
-        <p className="mt-2.5 text-xs leading-relaxed text-slate-600">
-          Rather than evaluating machine-learning accuracy, StudyLens investigates the <strong>interaction design</strong> between an AI recommendation system and a student.
-        </p>
+        <div className="mt-3 rounded-md bg-surface-50 border border-surface-200 p-2.5 text-[11px] text-slate-500 leading-relaxed">
+          <strong className="text-slate-700">Recommendation logic:</strong> Rule-based and deterministic. This prototype does not currently use a trained machine learning model or external AI service.
+        </div>
       </div>
 
       {/* Research question */}
@@ -140,7 +140,7 @@ export default function AboutPage() {
         <h2 className="section-heading mb-2.5">Academic Honesty & Limitations</h2>
         <ul className="space-y-2 text-xs text-slate-600">
           {[
-            'Simulated AI Logic: Recommendation priority is calculated using a rule-based deterministic formula (4-factor scoring). No trained machine-learning model is used.',
+            'Deterministic Recommendation Logic: Recommendation priority is calculated using a rule-based deterministic formula (4-factor scoring). No trained machine-learning model or external AI API is used.',
             'No User Study Claimed: This is an exploratory prototype designed to demonstrate interaction ideas. No empirical user study or statistical evaluation has been conducted.',
             'No Educational Claims: StudyLens demonstrates UI patterns for transparency and user control; it does not claim validated learning outcomes.',
             'Single Course Scope: Focused on a single syllabus (Database Management CS 3200) to keep the prototype clear and accessible.',

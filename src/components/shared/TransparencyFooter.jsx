@@ -47,11 +47,11 @@ export default function TransparencyFooter() {
               Research Prototype Transparency Notice
             </p>
             <p className="text-xs leading-relaxed text-slate-400">
-              This prototype uses deterministic recommendation logic and does not
-              represent a validated AI system. No machine learning model is
-              involved. No user study has been conducted and no research findings
-              are being claimed. StudyLens is a research prototype
-              exploring Human-AI Interaction design concepts.
+              This prototype uses deterministic, rule-based recommendation logic
+              and does not use a trained machine learning model or external AI API.
+              No user study has been conducted and no research findings are being
+              claimed. StudyLens is an HCI research prototype exploring explainable
+              recommendation design, learner agency, and transparent feedback.
             </p>
           </div>
         </div>

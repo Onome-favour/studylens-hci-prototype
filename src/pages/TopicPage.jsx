@@ -276,7 +276,7 @@ export default function TopicPage() {
               Practice Quiz ({totalQuestions} Questions)
             </h3>
             <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-              Test your knowledge on {topic.name}. Completing this activity will update your learning history and AI recommendations.
+              Test your knowledge on {topic.name}. Completing this activity will update your learning history and study recommendations.
             </p>
 
             <button
